@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getProfile } from "@/lib/supabase-helpers";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
@@ -19,13 +20,10 @@ const Index = () => {
       return;
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("user_type")
-      .eq("id", session.user.id)
-      .single();
+    const { data: profile } = await getProfile(session.user.id);
 
-    if (profile?.user_type === "professor") {
+    // @ts-expect-error - Temporary until types are regenerated
+    if (profile && profile.user_type === "professor") {
       navigate("/professor");
     } else {
       navigate("/aluno");

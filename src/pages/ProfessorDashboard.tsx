@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getProfile, getClassrooms, insertClassroom } from "@/lib/supabase-helpers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -54,13 +55,10 @@ const ProfessorDashboard = () => {
       return;
     }
 
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("name, user_type")
-      .eq("id", session.user.id)
-      .single();
+    const { data: profileData } = await getProfile(session.user.id);
 
-    if (profileData?.user_type !== "professor") {
+    // @ts-expect-error - Temporary until types are regenerated
+    if (!profileData || profileData.user_type !== "professor") {
       navigate("/aluno");
       return;
     }
@@ -70,10 +68,7 @@ const ProfessorDashboard = () => {
   };
 
   const loadClassrooms = async () => {
-    const { data, error } = await supabase
-      .from("classrooms")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await getClassrooms();
 
     if (error) {
       toast.error("Erro ao carregar salas");
@@ -99,7 +94,7 @@ const ProfessorDashboard = () => {
 
     const code = generateCode();
     
-    const { error } = await supabase.from("classrooms").insert({
+    const { error } = await insertClassroom({
       teacher_id: session.user.id,
       name: formData.name,
       code,

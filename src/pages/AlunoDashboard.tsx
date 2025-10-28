@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getProfile, getEnrollments, getClassroomByCode, insertEnrollment } from "@/lib/supabase-helpers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -50,13 +51,10 @@ const AlunoDashboard = () => {
       return;
     }
 
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("name, user_type")
-      .eq("id", session.user.id)
-      .single();
+    const { data: profileData } = await getProfile(session.user.id);
 
-    if (profileData?.user_type === "professor") {
+    // @ts-expect-error - Temporary until types are regenerated
+    if (!profileData || profileData.user_type === "professor") {
       navigate("/professor");
       return;
     }
@@ -66,21 +64,7 @@ const AlunoDashboard = () => {
   };
 
   const loadEnrollments = async () => {
-    const { data, error } = await supabase
-      .from("enrollments")
-      .select(`
-        id,
-        classroom:classrooms (
-          id,
-          name,
-          code,
-          period,
-          schedule,
-          max_absences,
-          total_classes
-        )
-      `)
-      .order("enrolled_at", { ascending: false });
+    const { data, error } = await getEnrollments();
 
     if (error) {
       toast.error("Erro ao carregar salas");
@@ -96,19 +80,17 @@ const AlunoDashboard = () => {
     if (!session) return;
 
     // Find classroom by code
-    const { data: classroom, error: classroomError } = await supabase
-      .from("classrooms")
-      .select("id")
-      .eq("code", classroomCode.toUpperCase())
-      .single();
+    const { data: classroom, error: classroomError } = await getClassroomByCode(
+      classroomCode.toUpperCase()
+    );
 
     if (classroomError || !classroom) {
       toast.error("Código de sala inválido");
       return;
     }
 
-    // Enroll student
-    const { error } = await supabase.from("enrollments").insert({
+    const { error } = await insertEnrollment({
+      // @ts-expect-error - Temporary until types are regenerated
       classroom_id: classroom.id,
       student_id: session.user.id,
     });
