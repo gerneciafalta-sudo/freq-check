@@ -25,7 +25,6 @@ interface Classroom {
   schedule: string | null;
   max_absences: number;
   total_classes: number;
-  archived: boolean;
 }
 
 const ProfessorDashboard = () => {
@@ -57,7 +56,6 @@ const ProfessorDashboard = () => {
 
     const { data: profileData } = await getProfile(session.user.id);
 
-    // @ts-expect-error - Temporary until types are regenerated
     if (!profileData || profileData.user_type !== "professor") {
       navigate("/aluno");
       return;
@@ -133,7 +131,7 @@ const ProfessorDashboard = () => {
     );
   }
 
-  const activeClassrooms = classrooms.filter(c => !c.archived);
+  const activeClassrooms = classrooms;
 
   return (
     <div className="min-h-screen bg-background">
