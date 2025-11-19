@@ -22,7 +22,6 @@ const Index = () => {
 
     const { data: profile } = await getProfile(session.user.id);
 
-    // @ts-expect-error - Temporary until types are regenerated
     if (profile && profile.user_type === "professor") {
       navigate("/professor");
     } else {

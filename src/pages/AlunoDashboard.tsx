@@ -53,7 +53,6 @@ const AlunoDashboard = () => {
 
     const { data: profileData } = await getProfile(session.user.id);
 
-    // @ts-expect-error - Temporary until types are regenerated
     if (!profileData || profileData.user_type === "professor") {
       navigate("/professor");
       return;
@@ -90,7 +89,6 @@ const AlunoDashboard = () => {
     }
 
     const { error } = await insertEnrollment({
-      // @ts-expect-error - Temporary until types are regenerated
       classroom_id: classroom.id,
       student_id: session.user.id,
     });
